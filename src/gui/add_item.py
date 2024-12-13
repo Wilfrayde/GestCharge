@@ -3,6 +3,7 @@ from PyQt5.QtCore import QDate
 from src.database.db_setup import get_session
 from src.database.models import Material
 from src.database.queries import add_material
+from datetime import datetime
 
 class AddItemDialog(QDialog):
     def __init__(self, session):
@@ -50,6 +51,7 @@ class AddItemDialog(QDialog):
         
         self.assignment_date_input = QDateEdit()
         self.assignment_date_input.setDate(QDate.currentDate())
+        self.assignment_date_input.setDisplayFormat("dd/MM/yyyy")  # Format français
         layout.addWidget(QLabel("Date d'Assignement:"))
         layout.addWidget(self.assignment_date_input)
         
@@ -69,10 +71,18 @@ class AddItemDialog(QDialog):
             QMessageBox.warning(self, "Erreur", "Le nom du matériel est obligatoire.")
             return
         
-        add_material(self.session, **self.get_material_data())
-        self.accept()
+        try:
+            material_data = self.get_material_data()
+            add_material(self.session, **material_data)
+            self.session.commit()
+            super().accept()
+        except Exception as e:
+            self.session.rollback()
+            QMessageBox.critical(self, "Erreur", f"Erreur lors de l'ajout: {str(e)}")
 
     def get_material_data(self):
+        # Récupérer la date au format français
+        date = self.assignment_date_input.date().toPyDate()
         return {
             "name": self.name_input.text().strip(),
             "serial_number": self.serial_number_input.text().strip() or None,
@@ -81,6 +91,6 @@ class AddItemDialog(QDialog):
             "location": self.location_input.text().strip() or None,
             "category": self.category_input.text().strip() or None,
             "assigned_user": self.user_input.text().strip() or None,
-            "assignment_date": self.assignment_date_input.date().toPyDate() if self.assignment_date_input.date() else None,
+            "assignment_date": date,
             "comments": self.comments_input.text().strip() or None,
         }

@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from datetime import datetime
 import csv
 from src.database.models import Material
+from src.database.queries import add_material, delete_material, update_material_field
 
 class MaterialManager:
     def __init__(self, session, table_widget):
@@ -42,7 +43,7 @@ class MaterialManager:
                 QTableWidgetItem(material.brand_model or ""),
                 QTableWidgetItem(material.location or ""),
                 QTableWidgetItem(material.assigned_user or ""),
-                QTableWidgetItem(material.assignment_date.strftime("%Y-%m-%d") if material.assignment_date else ""),
+                QTableWidgetItem(material.assignment_date.strftime("%d/%m/%Y") if material.assignment_date else ""),
                 QTableWidgetItem(material.comments or "")
             ]
             
@@ -81,9 +82,8 @@ class MaterialManager:
 
     def delete_materials(self, material_ids):
         try:
-            self.session.query(Material).filter(
-                Material.id.in_(material_ids)
-            ).delete(synchronize_session='fetch')
+            for material_id in material_ids:
+                delete_material(self.session, material_id)
             self.session.commit()
             
             # Mettre à jour le cache local
@@ -100,13 +100,23 @@ class MaterialManager:
 
     def import_materials(self, file_name):
         try:
-            materials_to_add = []
             with open(file_name, 'r', encoding='utf-8') as file:
                 reader = csv.reader(file)
                 next(reader)  # Skip header
                 
                 for row in reader:
                     if len(row) >= 9:
+                        # Conversion de la date du format FR vers ISO
+                        assignment_date = None
+                        if row[7]:  # Si la date n'est pas vide
+                            try:
+                                assignment_date = datetime.strptime(row[7], '%d/%m/%Y')
+                            except ValueError:
+                                try:
+                                    assignment_date = datetime.strptime(row[7], '%Y-%m-%d')
+                                except ValueError:
+                                    pass
+
                         material_data = {
                             'name': row[0],
                             'serial_number': row[1] or None,
@@ -115,12 +125,11 @@ class MaterialManager:
                             'category': row[4] or None,
                             'location': row[5] or None,
                             'assigned_user': row[6] or None,
-                            'assignment_date': datetime.strptime(row[7], '%Y-%m-%d') if row[7] else None,
+                            'assignment_date': assignment_date,
                             'comments': row[8] or None
                         }
-                        materials_to_add.append(Material(**material_data))
+                        add_material(self.session, **material_data)
             
-            self.session.bulk_save_objects(materials_to_add)
             self.session.commit()
             self.load_materials()
             return True
@@ -149,7 +158,7 @@ class MaterialManager:
                         material.category or "",
                         material.location or "",
                         material.assigned_user or "",
-                        material.assignment_date.strftime("%Y-%m-%d") if material.assignment_date else "",
+                        material.assignment_date.strftime("%d/%m/%Y") if material.assignment_date else "",
                         material.comments or ""
                     ])
                 return True
@@ -184,3 +193,34 @@ class MaterialManager:
         
         # Permettre l'étirement de la dernière colonne
         header.setStretchLastSection(True) 
+
+    def update_material(self, material_id, field_name, new_value):
+        """Met à jour un champ spécifique d'un matériel"""
+        try:
+            # Si c'est une date, la convertir du format FR vers ISO
+            if field_name == "assignment_date" and new_value:
+                try:
+                    new_value = datetime.strptime(new_value, '%d/%m/%Y').date()
+                except ValueError:
+                    QMessageBox.warning(
+                        None,
+                        "Format de date incorrect",
+                        "La date doit être au format JJ/MM/AAAA"
+                    )
+                    return False
+
+            # Utiliser la fonction de queries.py
+            update_material_field(self.session, material_id, field_name, new_value)
+            self.session.commit()
+
+            # Mettre à jour le cache local
+            material = self.session.query(Material).get(material_id)
+            self.materials_dict[material_id] = material
+            self.all_materials = list(self.materials_dict.values())
+            
+            return True
+                
+        except Exception as e:
+            self.session.rollback()
+            QMessageBox.critical(None, "Erreur", f"Erreur lors de la mise à jour: {str(e)}")
+            return False

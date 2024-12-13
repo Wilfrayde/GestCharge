@@ -3,24 +3,18 @@ from .models import Material
 from datetime import datetime
 
 def add_material(session: Session, **kwargs):
-    new_material = Material(**kwargs)
-    session.add(new_material)
-    session.commit()
+    material = Material(**kwargs)
+    session.add(material)
+    return material
 
 def delete_material(session: Session, material_id: int):
     material = session.query(Material).get(material_id)
     if material:
         session.delete(material)
-        session.commit()
+    return True
 
-def update_material(session: Session, material_id: int, **kwargs):
-    # Filtrer les kwargs vides pour éviter les mises à jour inutiles
-    valid_kwargs = {k: v for k, v in kwargs.items() if v is not None}
-    if not valid_kwargs:
-        return
-    
+def update_material_field(session: Session, material_id: int, field_name: str, new_value: any):
     material = session.query(Material).get(material_id)
     if material:
-        for key, value in valid_kwargs.items():
-            setattr(material, key, value)
-        session.commit()
+        setattr(material, field_name, new_value)
+    return material

@@ -9,6 +9,11 @@ GestCharge est une application de bureau permettant de gérer efficacement l'inv
   - Redimensionnement automatique et intelligent des colonnes
   - Meilleure réactivité de l'interface
 
+- **Gestion des dates**
+  - Support complet du format de date français (JJ/MM/AAAA)
+  - Compatibilité avec l'import/export de fichiers Excel
+  - Affichage unifié des dates dans l'interface
+
 - **Refactoring majeur**
   - Séparation des responsabilités (Material, Theme, Toolbar Managers)
   - Styles externalisés dans un fichier QSS dédié
