@@ -2,6 +2,23 @@
 
 GestCharge est une application de bureau permettant de gérer efficacement l'inventaire du matériel informatique d'une entreprise. Elle offre une interface intuitive pour suivre les équipements, leur attribution et leur localisation.
 
+## Dernières mises à jour (v1.1.0)
+
+- **Amélioration de l'interface utilisateur**
+  - Persistance du thème choisi (clair/sombre) entre les sessions
+  - Redimensionnement automatique et intelligent des colonnes
+  - Meilleure réactivité de l'interface
+
+- **Refactoring majeur**
+  - Séparation des responsabilités (Material, Theme, Toolbar Managers)
+  - Styles externalisés dans un fichier QSS dédié
+  - Code plus maintenable et modulaire
+
+- **Optimisations**
+  - Amélioration des performances de chargement
+  - Gestion optimisée de la mémoire
+  - Réduction de la duplication de code
+
 ## Fonctionnalités
 
 ### 1. Gestion du Matériel
@@ -205,9 +222,14 @@ GestCharge/
 │   ├── gui/
 │   │   ├── main_window.py # Fenêtre principale
 │   │   ├── add_item.py    # Dialogue d'ajout
-│   │   └── dashboard.py   # Tableau de bord
+│   │   ├── dashboard.py   # Tableau de bord
+│   │   └── toolbar_manager.py # Gestionnaire de la barre d'outils
 │   ├── utils/
-│   │   └── pdf_generator.py # Générateur PDF
+│   │   ├── material_manager.py # Gestionnaire des matériels
+│   │   ├── theme_manager.py    # Gestionnaire des thèmes
+│   │   └── pdf_generator.py    # Générateur PDF
+│   ├── resources/
+│   │   └── styles.qss     # Styles de l'interface
 │   └── main.py            # Point d'entrée
 ├── requirements.txt       # Dépendances
 └── README.md             # Documentation
