@@ -1,5 +1,5 @@
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -21,10 +21,10 @@ HEADER_STYLE = ParagraphStyle(
 )
 
 def generate_inventory_pdf(materials, output_file):
-    # Création du document avec des marges réduites
+    # Création du document avec des marges réduites et en mode paysage
     doc = SimpleDocTemplate(
         output_file,
-        pagesize=A4,
+        pagesize=landscape(A4),
         rightMargin=30,  # Réduire les marges
         leftMargin=30,
         topMargin=30,
@@ -39,6 +39,15 @@ def generate_inventory_pdf(materials, output_file):
         fontSize=24,
         spaceAfter=30,
         alignment=1  # Centre
+    )
+    
+    # Définir un style pour les cellules du tableau afin de gérer le retour à la ligne
+    cell_style = ParagraphStyle(
+        'CellStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        leading=10,
+        alignment=0  # aligner à gauche
     )
     
     # Contenu du document
@@ -77,14 +86,14 @@ def generate_inventory_pdf(materials, output_file):
     
     for material in materials:
         data.append([
-            material.name,
-            material.serial_number or "",
-            material.category or "",
-            material.mac_address or "",
-            material.brand_model or "",
-            material.location or "",
-            material.assigned_user or "",
-            material.assignment_date.strftime("%d/%m/%Y") if material.assignment_date else ""
+            Paragraph(material.name, cell_style),
+            Paragraph(material.serial_number or "", cell_style),
+            Paragraph(material.category or "", cell_style),
+            Paragraph(material.mac_address or "", cell_style),
+            Paragraph(material.brand_model or "", cell_style),
+            Paragraph(material.location or "", cell_style),
+            Paragraph(material.assigned_user or "", cell_style),
+            Paragraph(material.assignment_date.strftime("%d/%m/%Y") if material.assignment_date else "", cell_style)
         ])
     
     # Définir les largeurs relatives des colonnes (ajustées)

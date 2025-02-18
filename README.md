@@ -2,27 +2,14 @@
 
 GestCharge est une application de bureau permettant de gérer efficacement l'inventaire du matériel informatique d'une entreprise. Elle offre une interface intuitive pour suivre les équipements, leur attribution et leur localisation.
 
-## Dernières mises à jour (v1.1.0)
+## Dernières mises à jour (v1.1.1)
 
-- **Amélioration de l'interface utilisateur**
-  - Persistance du thème choisi (clair/sombre) entre les sessions
-  - Redimensionnement automatique et intelligent des colonnes
-  - Meilleure réactivité de l'interface
-
-- **Gestion des dates**
-  - Support complet du format de date français (JJ/MM/AAAA)
-  - Compatibilité avec l'import/export de fichiers Excel
-  - Affichage unifié des dates dans l'interface
-
-- **Refactoring majeur**
-  - Séparation des responsabilités (Material, Theme, Toolbar Managers)
-  - Styles externalisés dans un fichier QSS dédié
-  - Code plus maintenable et modulaire
-
-- **Optimisations**
-  - Amélioration des performances de chargement
-  - Gestion optimisée de la mémoire
-  - Réduction de la duplication de code
+- **Amélioration du générateur PDF**
+  - Format paysage pour une meilleure lisibilité
+  - Gestion intelligente du texte long avec retour à la ligne automatique
+  - En-tête et pied de page professionnels
+  - Meilleure répartition des colonnes
+  - Styles optimisés pour l'impression
 
 ## Fonctionnalités
 
