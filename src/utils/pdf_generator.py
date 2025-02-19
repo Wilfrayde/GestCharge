@@ -147,7 +147,7 @@ def generate_inventory_pdf(materials, output_file):
         alignment=1
     )
     elements.append(Spacer(1, 20))
-    elements.append(Paragraph("Document généré par GestCharge V1.1.0", footer_style))
+    elements.append(Paragraph("Document généré par GestCharge V1.1.1", footer_style))
     
     # Génération du PDF
     doc.build(elements)
