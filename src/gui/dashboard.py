@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTabWidget, QWidget, QLabel, QGridLayout
 from PyQt5.QtChart import QChart, QChartView, QPieSeries, QBarSeries, QBarSet, QValueAxis, QBarCategoryAxis
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPainter, QBrush, QColor
 from sqlalchemy import func
 from src.database.models import Material
 
@@ -12,8 +12,38 @@ class DashboardDialog(QDialog):
         self.setWindowTitle("Tableau de Bord")
         self.setMinimumSize(800, 600)
         
-        # Layout principal
+        # Appliquer un style moderne à l'ensemble du dashboard
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #ffffff; /* Arrière-plan blanc pour un meilleur contraste */
+            }
+            QLabel {
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 14px;
+                color: #333333;
+            }
+            QTabWidget::pane {
+                border-top: 2px solid #C2C7CB;
+            }
+            QTabBar::tab {
+                background: #d9d9d9; /* Fond des onglets modifié pour une meilleure lisibilité */
+                color: #333333;      /* Couleur de texte explicitement définie */
+                border: 1px solid #C4C4C4;
+                padding: 10px;
+                margin: 2px;
+            }
+            QTabBar::tab:selected {
+                background: #ffffff;
+                color: #333333;
+                border-bottom-color: #ffffff;
+                font-weight: bold;
+            }
+        """)
+
+        # Layout principal avec marges et espacement améliorés
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         
         # Widget à onglets
         tab_widget = QTabWidget()
@@ -35,35 +65,50 @@ class DashboardDialog(QDialog):
     def create_overview_tab(self):
         tab = QWidget()
         layout = QGridLayout(tab)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setHorizontalSpacing(20)
+        layout.setVerticalSpacing(20)
+        
+        # Ajout d'un en-tête pour la vue d'ensemble
+        header_label = QLabel("<h2>Tableau de Bord - Vue d'ensemble</h2>")
+        header_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(header_label, 0, 0, 1, 2)
         
         # Statistiques générales
         stats = self.get_general_stats()
         stats_label = QLabel(
-            f"<h3>Statistiques générales</h3>"
-            f"<p><b>Total matériels:</b> {stats['total']}</p>"
-            f"<p><b>Matériels assignés:</b> {stats['assigned']}</p>"
-            f"<p><b>Matériels non assignés:</b> {stats['unassigned']}</p>"
+            f"<p style='font-size: 16px;'><b>Total matériels :</b> {stats['total']}</p>"
+            f"<p style='font-size: 16px;'><b>Matériels assignés :</b> {stats['assigned']}</p>"
+            f"<p style='font-size: 16px;'><b>Matériels non assignés :</b> {stats['unassigned']}</p>"
         )
-        stats_label.setStyleSheet("QLabel { padding: 10px; }")
-        layout.addWidget(stats_label, 0, 0)
+        stats_label.setStyleSheet(
+            "padding: 10px; background-color: #ffffff; border-radius: 5px;"
+        )
+        layout.addWidget(stats_label, 1, 0)
         
         # Graphique par catégorie
         category_chart = self.create_category_chart()
-        layout.addWidget(category_chart, 1, 0)
+        layout.addWidget(category_chart, 2, 0)
         
         return tab
 
     def create_location_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         chart_view = self.create_location_chart()
+        chart_view.setMinimumSize(400, 300)
         layout.addWidget(chart_view)
         return tab
 
     def create_users_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
         chart_view = self.create_users_chart()
+        chart_view.setMinimumSize(400, 300)
         layout.addWidget(chart_view)
         return tab
 
@@ -89,15 +134,29 @@ class DashboardDialog(QDialog):
         
         for category, count in categories:
             series.append(category or "Non catégorisé", count)
+        
+        # Rendre les étiquettes de chaque tranche visibles uniquement au survol
+        for slice in series.slices():
+            slice.setLabelVisible(False)  # Masquer les étiquettes par défaut
+            slice.setLabelBrush(QBrush(QColor("#333333")))
+            # Afficher l'étiquette lors du survol et la masquer lorsqu'on ne survole plus
+            slice.hovered.connect(lambda state, s=slice: s.setLabelVisible(state))
             
         chart = QChart()
         chart.addSeries(series)
         chart.setTitle("Répartition par catégorie")
         chart.setAnimationOptions(QChart.SeriesAnimations)
         chart.legend().setVisible(True)
+        chart.setBackgroundVisible(True)
+        chart.setBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setPlotAreaBackgroundVisible(True)
+        chart.setPlotAreaBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setTitleBrush(QBrush(QColor("#333333")))
+        chart.legend().setLabelBrush(QBrush(QColor("#333333")))
         
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
+        chartview.setMinimumSize(400, 300)
         return chartview
 
     def create_location_chart(self):
@@ -121,13 +180,21 @@ class DashboardDialog(QDialog):
         chart.addSeries(series)
         chart.setTitle("Répartition par localisation")
         chart.setAnimationOptions(QChart.SeriesAnimations)
+        chart.setBackgroundVisible(True)
+        chart.setBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setPlotAreaBackgroundVisible(True)
+        chart.setPlotAreaBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setTitleBrush(QBrush(QColor("#333333")))
+        chart.legend().setLabelBrush(QBrush(QColor("#333333")))
         
         axisX = QBarCategoryAxis()
         axisX.append(categories)
+        axisX.setLabelsBrush(QBrush(QColor("#333333")))
         chart.addAxis(axisX, Qt.AlignBottom)
         series.attachAxis(axisX)
         
         axisY = QValueAxis()
+        axisY.setLabelsBrush(QBrush(QColor("#333333")))
         chart.addAxis(axisY, Qt.AlignLeft)
         series.attachAxis(axisY)
         
@@ -135,6 +202,7 @@ class DashboardDialog(QDialog):
         
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
+        chartview.setMinimumSize(400, 300)
         return chartview
 
     def create_users_chart(self):
@@ -160,13 +228,21 @@ class DashboardDialog(QDialog):
         chart.addSeries(series)
         chart.setTitle("Équipements par utilisateur")
         chart.setAnimationOptions(QChart.SeriesAnimations)
+        chart.setBackgroundVisible(True)
+        chart.setBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setPlotAreaBackgroundVisible(True)
+        chart.setPlotAreaBackgroundBrush(QBrush(QColor("#ffffff")))
+        chart.setTitleBrush(QBrush(QColor("#333333")))
+        chart.legend().setLabelBrush(QBrush(QColor("#333333")))
         
         axisX = QBarCategoryAxis()
         axisX.append(categories)
+        axisX.setLabelsBrush(QBrush(QColor("#333333")))
         chart.addAxis(axisX, Qt.AlignBottom)
         series.attachAxis(axisX)
         
         axisY = QValueAxis()
+        axisY.setLabelsBrush(QBrush(QColor("#333333")))
         chart.addAxis(axisY, Qt.AlignLeft)
         series.attachAxis(axisY)
         
@@ -174,4 +250,5 @@ class DashboardDialog(QDialog):
         
         chartview = QChartView(chart)
         chartview.setRenderHint(QPainter.Antialiasing)
+        chartview.setMinimumSize(400, 300)
         return chartview 
